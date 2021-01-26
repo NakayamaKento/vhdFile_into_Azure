@@ -2,6 +2,9 @@
 #管理者権限の Powershell で実行する
 #参考 https://docs.microsoft.com/ja-jp/azure/virtual-machines/windows/prepare-for-upload-vhd-image
 
+
+sfc.exe /scannow
+
 #静的な固定ルートを削除
 route print
 #固定ルートがあれば以下のコマンドで削除
@@ -22,7 +25,6 @@ Set-Service -Name w32time -StartupType Automatic
 powercfg /setactive SCHEME_MIN
 
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment’ -name “TEMP” -Value “%SystemRoot%\TEMP” -Type ExpandString -force
-
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment’ -name “TMP” -Value “%SystemRoot%\TEMP” -Type ExpandString -force
 
 
@@ -35,64 +37,55 @@ Get-Service -Name Netlogon, Netman, TermService |
     Set-Service -StartupType Manual
 
 
-Get-Service -Name BFE, Dhcp, Dnscache, IKEEXT, iphlpsvc, nsi, mpssvc, RemoteRegistry |
-    Where-Object StartType -ne Automatic |
-      Set-Service -StartupType Automatic
-  
-Get-Service -Name Netlogon, Netman, TermService |
-    Where-Object StartType -ne Manual |
-      Set-Service -StartupType Manual
+Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0 -Type DWord -Force
+Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services' -Name fDenyTSConnections -Value 0 -Type DWord -Force
+
 
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\Winstations\RDP-Tcp’ -name “PortNumber” -Value 3389 -Type DWord -force
-
-
-
 
 
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\Winstations\RDP-Tcp’ -name “LanAdapter” -Value 0 -Type DWord -force
 
 
-
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp’ -name “UserAuthentication” -Value 1 -Type DWord -force
-
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp’ -name “SecurityLayer” -Value 1 -Type DWord -force
-
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp’ -name “fAllowSecProtocolNegotiation” -Value 1 -Type DWord -force
 
 
-
 Set-ItemProperty -Path ‘HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services’ -name “KeepAliveEnable” -Value 1 -Type DWord -force
-
 Set-ItemProperty -Path ‘HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services’ -name “KeepAliveInterval” -Value 1 -Type DWord -force
-
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\Winstations\RDP-Tcp’ -name “KeepAliveTimeout” -Value 1 -Type DWord -force
 
 
-
 Set-ItemProperty -Path ‘HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services’ -name “fDisableAutoReconnect” -Value 0 -Type DWord -force
-
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\Winstations\RDP-Tcp’ -name “fInheritReconnectSame” -Value 1 -Type DWord -force
-
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\Winstations\RDP-Tcp’ -name “fReconnectSame” -Value 0 -Type DWord -force
 
 
 Set-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\Winstations\RDP-Tcp’ -name “MaxInstanceCount” -Value 4294967295 -Type DWord -force
 
 
+if ((Get-Item -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp').Property -contains 'SSLCertificateSHA1Hash')
+{
+    Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name SSLCertificateSHA1Hash -Force
+}
+
 
 #以下のコマンドは削除対象がなければエラーが出力
-Remove-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp’ -name “SSLCertificateSHA1Hash” -force
+#Remove-ItemProperty -Path ‘HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp’ -name “SSLCertificateSHA1Hash” -force
 
 
 Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
 
 
+Enable-PSRemoting -Force
+#Set-NetFirewallRule -DisplayName 'Windows Remote Management (HTTP-In)' -Enabled True
+
+
+
 Set-NetFirewallRule -DisplayName "ファイルとプリンターの共有 (エコー要求 - ICMPv4 受信)" -Enabled True
 Set-NetFirewallRule -DisplayGroup "リモート デスクトップ" -Enabled True
-Set-NetFirewallRule -DisplayName "ファイルとプリンターの共有 (エコー要求 - ICMPv4 受信)" -Enabled True
 
- が
-Chkdsk /f
 
 bcdedit /set “{bootmgr}” integrityservices enable
 bcdedit /set “{default}” device partition=C:
@@ -132,4 +125,5 @@ winmgmt /verifyrepository
 netstat -anob
 
 
+Chkdsk /f
 #最後に再起動をかけておく
