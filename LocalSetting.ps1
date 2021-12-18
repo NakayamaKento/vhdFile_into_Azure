@@ -87,6 +87,9 @@ Set-NetFirewallRule -DisplayName "ファイルとプリンターの共有 (エ�
 Set-NetFirewallRule -DisplayGroup "リモート デスクトップ" -Enabled True
 
 
+New-NetFirewallRule -DisplayName AzurePlatform -Direction Inbound -RemoteAddress 168.63.129.16 -Profile Any -Action Allow -EdgeTraversalPolicy Allow
+New-NetFirewallRule -DisplayName AzurePlatform -Direction Outbound -RemoteAddress 168.63.129.16 -Profile Any -Action Allow
+
 cmd
 bcdedit /set “{bootmgr}” integrityservices enable
 bcdedit /set “{default}” device partition=C:

@@ -3,10 +3,10 @@
 
 ######## 変更するパラメータ
 
-$souceVHDfile = "./win10edu2004.vhd"
-$diskname = "win10edu2004os"
+$souceVHDfile = "./XXXX.vhd"
+$diskname = "XXXXos"
 $Region = "japaneast"
-$ResourceGroup = "win10update"
+$ResourceGroup = "XXXX"
 
 ########
 
