@@ -91,20 +91,20 @@ New-NetFirewallRule -DisplayName AzurePlatform -Direction Inbound -RemoteAddress
 New-NetFirewallRule -DisplayName AzurePlatform -Direction Outbound -RemoteAddress 168.63.129.16 -Profile Any -Action Allow
 
 cmd
-bcdedit /set “{bootmgr}” integrityservices enable
-bcdedit /set “{default}” device partition=C:
-bcdedit /set “{default}” integrityservices enable
-bcdedit /set “{default}” recoveryenabled Off
-bcdedit /set “{default}” osdevice partition=C:
-bcdedit /set “{default}” bootstatuspolicy IgnoreAllFailures
 
+bcdedit.exe /set "{bootmgr}" integrityservices enable
+bcdedit.exe /set "{default}" device partition=C:
+bcdedit.exe /set "{default}" integrityservices enable
+bcdedit.exe /set "{default}" recoveryenabled Off
+bcdedit.exe /set "{default}" osdevice partition=C:
+bcdedit.exe /set "{default}" bootstatuspolicy IgnoreAllFailures
 
-
-bcdedit /set “{bootmgr}” displaybootmenu yes
-bcdedit /set “{bootmgr}” timeout 5
-bcdedit /set “{bootmgr}” bootems yes
-bcdedit /ems “{current}” ON
-bcdedit /emssettings EMSPORT:1 EMSBAUDRATE:115200
+#Enable Serial Console Feature
+bcdedit.exe /set "{bootmgr}" displaybootmenu yes
+bcdedit.exe /set "{bootmgr}" timeout 5
+bcdedit.exe /set "{bootmgr}" bootems yes
+bcdedit.exe /ems "{current}" ON
+bcdedit.exe /emssettings EMSPORT:1 EMSBAUDRATE:115200
 
 exit
 
